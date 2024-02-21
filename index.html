@@ -490,7 +490,7 @@
       <div
         class="flex flex-col sm:flex-row max-w-6xl mx-auto flex md:flex-wrap justify-between items-center"
       >
-        <div class="p-2">
+        <div class="p-2 order-2 sm:order-first">
           &copy; 2024
           <a
             href="/"
@@ -517,14 +517,20 @@
         <form
           method="POST"
           action="https://mainnet.demo.btcpayserver.org/api/v1/invoices"
-          class="btcpay-form flex flex-col items-center justify-center p-2 order-first sm:order-last"
+          class="flex flex-col items-center justify-center p-2 order-first sm:order-last"
+          target="_blank"
+          rel="external noopener noreferrer"
         >
           <input
             type="hidden"
             name="storeId"
             value="AAf9d69FnaNp1E5HxQjRT41Pqv9bc8aoBkFtcxvpEvrH"
           />
-          <input type="hidden" name="jsonResponse" value="true" />
+          <input
+            type="hidden"
+            name="browserRedirect"
+            value="https://bcrypt.tools/thank-you"
+          />
           <input
             type="hidden"
             name="notifyEmail"
@@ -532,67 +538,13 @@
           />
           <input type="hidden" name="currency" value="BTC" />
           <button
-            id="donateButton"
             type="submit"
-            class="flex items-center text-white font-semibold py-2 px-4 rounded inline-flex outline hover:outline-orange-600 hover:text-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-150"
-            aria-label="Donate with Bitcoin"
+            name="submit"
+            class="flex items-center bg-grey-800 text-white outline outline-1 font-semibold py-2 px-4 rounded inline-flex"
           >
             Donate with Bitcoin
           </button>
         </form>
-        <script>
-          if (!window.btcpay) {
-            var script = document.createElement("script");
-            script.src =
-              "https://mainnet.demo.btcpayserver.org/modal/btcpay.js";
-            document.getElementsByTagName("head")[0].append(script);
-          }
-
-          function handleFormSubmit(event) {
-            event.preventDefault();
-            var donateButton = document.getElementById("donateButton");
-            donateButton.innerHTML = "Processing...";
-            donateButton.disabled = true;
-            donateButton.classList.add("opacity-50", "cursor-not-allowed");
-
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-              if (
-                this.readyState == 4 &&
-                this.status == 200 &&
-                this.responseText
-              ) {
-                window.btcpay.appendInvoiceFrame(
-                  JSON.parse(this.responseText).invoiceId
-                );
-                donateButton.innerHTML = "Donate with Bitcoin";
-                donateButton.disabled = false;
-                donateButton.classList.remove(
-                  "opacity-50",
-                  "cursor-not-allowed"
-                );
-              } else if (this.readyState == 4) {
-                donateButton.innerHTML = "Try Again";
-                donateButton.disabled = false;
-                donateButton.classList.remove(
-                  "opacity-50",
-                  "cursor-not-allowed"
-                );
-              }
-            };
-            xhttp.open("POST", event.target.getAttribute("action"), true);
-            xhttp.send(new FormData(event.target));
-          }
-
-          document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".btcpay-form").forEach(function (el) {
-              if (!el.dataset.initialized) {
-                el.addEventListener("submit", handleFormSubmit);
-                el.dataset.initialized = true;
-              }
-            });
-          });
-        </script>
       </div>
     </footer>
     <style>
