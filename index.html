@@ -70,10 +70,13 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Bcrypt -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"
+      async
+    ></script>
     <script>
-      let bcrypt = dcodeIO.bcrypt;
       const onSubmitGenerateHash = (event) => {
+        let bcrypt = dcodeIO.bcrypt;
         const dataInput = document.getElementById("input-text");
         const saltInput = document.getElementById("salt-count");
         if (dataInput.value.trim() === "") {
@@ -91,6 +94,7 @@
       };
 
       const onSubmitCompareHash = (event) => {
+        let bcrypt = dcodeIO.bcrypt;
         const data = document.getElementById("data-to-compare").value;
         const hash = document.getElementById("hash-to-compare").value;
         if (data.trim() === "" || hash.trim() === "") {
