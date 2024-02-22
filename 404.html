@@ -9,14 +9,42 @@
       content="404 Page Not Found. The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
     />
     <link rel="canonical" href="https://bcrypt.tools/404" />
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://bcrypt.tools/404" />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content="404 Not Found - Bcrypt.tools" />
     <meta
       property="og:description"
       content="The requested page could not be found on Bcrypt.tools. Please check the URL for mistakes and try again."
     />
-    <meta property="og:image" content="https://bcrypt.tools/404-image.png" />
-    <meta property="og:url" content="https://bcrypt.tools/404" />
+    <meta property="og:image" content="https://bcrypt.tools/image.png" />
+    <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="bcrypt.tools" />
+    <meta property="twitter:url" content="https://bcrypt.tools/404" />
+    <meta name="twitter:title" content="404 Not Found - Bcrypt.tools" />
+    <meta
+      name="twitter:description"
+      content="The requested page could not be found on Bcrypt.tools. Please check the URL for mistakes and try again."
+    />
+    <meta name="twitter:image" content="https://bcrypt.tools/image.png" />
+    <!-- Google Analytics-->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-NW49JN804Q"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-NW49JN804Q", {
+        cookie_domain: "bcrypt.tools",
+        cookie_flags: "SameSite=None;Secure",
+      });
+    </script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="flex flex-col w-full min-h-screen bg-gray-100">
