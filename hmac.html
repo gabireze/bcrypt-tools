@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHA-256 Hash Generator and Verifier Tool</title>
+    <title>HMAC Hash Generator and Verifier Tool</title>
     <meta
       name="description"
-      content="A secure SHA-256 hash generator and verifier tool to enhance data protection. Generate and verify SHA-256 hashes for your passwords and sensitive data online."
+      content="A secure HMAC hash generator and verifier tool to enhance data protection. Generate and verify HMAC hashes for your passwords and sensitive data online."
     />
     <meta
       name="keywords"
-      content="sha256, hash generator, hash verifier, data encryption, secure passwords, sha256 hashing"
+      content="hmac, hash generator, hash verifier, data encryption, secure passwords, hmac hashing"
     />
-    <link rel="canonical" href="https://bcrypt.tools/sha256" />
+    <link rel="canonical" href="https://bcrypt.tools/hmac" />
     <!-- Favicon -->
     <link
       rel="apple-touch-icon"
@@ -38,19 +38,14 @@
       color="#5bbad5"
     />
     <link rel="shortcut icon" href="/images/favicon/favicon.ico" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
     <meta name="theme-color" content="#ffffff" />
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://bcrypt.tools/sha256" />
+    <meta property="og:url" content="https://bcrypt.tools/hmac" />
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content="SHA-256 Hash Generator and Verifier Tool"
-    />
+    <meta property="og:title" content="HMAC Hash Generator and Verifier Tool" />
     <meta
       property="og:description"
-      content="Securely generate and verify SHA-256 hashes online."
+      content="Securely generate and verify HMAC hashes online."
     />
     <meta
       property="og:image"
@@ -69,14 +64,14 @@
     ></script>
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://bcrypt.tools/sha256" />
+    <meta property="twitter:url" content="https://bcrypt.tools/hmac" />
     <meta
       name="twitter:title"
-      content="SHA-256 Hash Generator and Verifier Tool"
+      content="HMAC Hash Generator and Verifier Tool"
     />
     <meta
       name="twitter:description"
-      content="Securely generate and verify SHA-256 hashes online."
+      content="Securely generate and verify HMAC hashes online."
     />
     <meta
       name="twitter:image"
@@ -88,84 +83,115 @@
     />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- crypto-api -->
-    <script src="https://nf404.github.io/crypto-api/crypto-api.min.js"></script>
+    <!-- hash-wasm API -->
+    <script src="https://cdn.jsdelivr.net/npm/hash-wasm@4.11.0/dist/index.umd.min.js"></script>
     <script>
-      const onSubmitGenerateSHA256Hash = (event) => {
-        const dataInput = document.getElementById("input-sha256-text");
-        if (dataInput.value.trim() === "") {
+      const onSubmitGenerateHash = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById("input-text").value;
+        const key = document.getElementById("input-key").value;
+        const algorithm = document.getElementById("algorithm").value;
+
+        if (!text || !key || !algorithm) {
           showAlert("All fields are required!");
           return;
         }
-        const data = dataInput.value;
-        const hash = CryptoApi.hash("sha256", data);
-        document.getElementById("sha256-hash-output").value = hash;
-        document
-          .getElementById("sha256-hash-output")
-          .parentElement.classList.remove("hidden");
+
+        try {
+          const hashFunc = hashwasm[algorithm]();
+          const hmac = await hashwasm.createHMAC(hashFunc, key);
+
+          hmac.init();
+          hmac.update(text);
+          const hash = hmac.digest();
+
+          document.getElementById("hash-output").value = hash;
+          document
+            .getElementById("hash-output")
+            .parentElement.classList.remove("hidden");
+        } catch (error) {
+          console.error(error);
+          showAlert("Error generating the hash!");
+        }
       };
 
-      const onSubmitCompareSHA256Hash = (event) => {
-        const data = document.getElementById("sha256-data-to-compare").value;
-        const hash = document.getElementById("sha256-hash-to-compare").value;
-        if (data.trim() === "" || hash.trim() === "") {
+      const onSubmitCompareHash = async (event) => {
+        event.preventDefault();
+
+        const data = document.getElementById("data-to-compare").value;
+        const key = document.getElementById("key-to-compare").value;
+        const algorithm = document.getElementById("algorithm-compare").value;
+        const hash = document.getElementById("hash-to-compare").value;
+
+        if (!data || !key || !hash || !algorithm) {
           showAlert("All fields are required for comparison!");
           return;
         }
-        const computedHash = CryptoApi.hash("sha256", data);
-        const isMatch = computedHash === hash;
-        const resultElement = document.getElementById(
-          "sha256-compare-hash-result"
-        );
-        resultElement.textContent = isMatch ? "Match" : "Do not match";
 
-        resultElement.classList.remove(
-          "bg-green-100",
-          "text-green-800",
-          "bg-red-100",
-          "text-red-800",
-          "border-green-400",
-          "border-red-400"
-        );
+        try {
+          const hashFunc = hashwasm[algorithm]();
+          const hmac = await hashwasm.createHMAC(hashFunc, key);
 
-        if (isMatch) {
-          resultElement.classList.add(
+          hmac.init();
+          hmac.update(data);
+
+          const computedHash = hmac.digest();
+          const isMatch = computedHash === hash;
+
+          const resultElement = document.getElementById("compare-hash-result");
+          resultElement.textContent = isMatch ? "Match" : "Do not match";
+
+          resultElement.classList.remove(
             "bg-green-100",
             "text-green-800",
-            "border-green-400"
-          );
-        } else {
-          resultElement.classList.add(
             "bg-red-100",
             "text-red-800",
+            "border-green-400",
             "border-red-400"
           );
-        }
 
-        resultElement.style.display = "block";
+          if (isMatch) {
+            resultElement.classList.add(
+              "bg-green-100",
+              "text-green-800",
+              "border-green-400"
+            );
+          } else {
+            resultElement.classList.add(
+              "bg-red-100",
+              "text-red-800",
+              "border-red-400"
+            );
+          }
+
+          resultElement.style.display = "block";
+        } catch (error) {
+          console.error("Error verifying the hash", error);
+          showAlert("Error verifying the hash!");
+        }
       };
 
-      const copySHA256ToClipboard = () => {
-        const hashOutput = document.getElementById("sha256-hash-output");
+      const copyToClipboard = () => {
+        const hashOutput = document.getElementById("hash-output");
         navigator.clipboard
           .writeText(hashOutput.value)
           .then(() => showAlert("Hash copied to clipboard!"))
           .catch((err) => console.error("Error copying to clipboard", err));
       };
 
-      const pasteSHA256FromClipboard = () => {
+      const pasteFromClipboard = () => {
         navigator.clipboard
           .readText()
           .then((text) => {
-            const hashToCompareInput = document.getElementById(
-              "sha256-hash-to-compare"
-            );
+            const hashToCompareInput =
+              document.getElementById("hash-to-compare");
             hashToCompareInput.value = text;
             showAlert("Text pasted into the input!");
           })
-          .catch((err) =>
-            console.error("Error pasting text from clipboard", err)
-          );
+          .catch((err) => {
+            console.error("Error pasting text from clipboard", err);
+          });
       };
 
       const showAlert = (message) => {
@@ -203,17 +229,16 @@
         }, 3000);
       };
 
-      const resetSHA256FirstForm = () => {
-        document.getElementById("generate-sha256-hash-form").reset();
+      const resetFirstForm = () => {
+        document.getElementById("generate-hash-form").reset();
         document
-          .getElementById("sha256-hash-output")
+          .getElementById("hash-output")
           .parentElement.classList.add("hidden");
       };
 
-      const resetSHA256SecondForm = () => {
-        document.getElementById("compare-sha256-hash-form").reset();
-        document.getElementById("sha256-compare-hash-result").style.display =
-          "none";
+      const resetSecondForm = () => {
+        document.getElementById("compare-hash-form").reset();
+        document.getElementById("compare-hash-result").style.display = "none";
       };
     </script>
   </head>
@@ -222,12 +247,12 @@
     <header class="bg-white p-4">
       <h1 class="text-2xl font-bold text-center mb-2">
         <a href="/" class="hover:underline">
-          Bcrypt.tools - SHA-256 Hash Generator and Verifier Tool
+          Bcrypt.tools - HMAC Hash Generator and Verifier Tool
         </a>
       </h1>
       <p class="text-gray-600 text-center">
-        Easily generate and verify SHA-256 hashes for your passwords and
-        sensitive data online.
+        Easily generate and verify HMAC hashes for your passwords and sensitive
+        data online.
       </p>
       <nav class="mt-4">
         <ul class="flex justify-center space-x-4">
@@ -244,7 +269,7 @@
             <a href="/sha1" class="text-blue-500 hover:text-blue-700">SHA-1</a>
           </li>
           <li>
-            <a href="/sha256" class="text-blue-500 hover:text-blue-700 active"
+            <a href="/sha256" class="text-blue-500 hover:text-blue-700"
               >SHA-256</a
             >
           </li>
@@ -267,34 +292,46 @@
             <a href="/crc32" class="text-blue-500 hover:text-blue-700">CRC32</a>
           </li>
           <li>
-            <a href="/hmac" class="text-blue-500 hover:text-blue-700">HMAC</a>
+            <a href="/hmac" class="text-blue-500 hover:text-blue-700 active"
+              >HMAC</a
+            >
           </li>
         </ul>
       </nav>
     </header>
     <main class="mx-auto max-w-4xl p-4 flex flex-col gap-4">
-      <section
-        id="sha256-hash-generator"
-        class="bg-white border rounded-md p-4"
-      >
+      <section id="hash-generator" class="bg-white border rounded-md p-4">
         <h2 class="text-xl font-semibold mb-2">Encrypt</h2>
         <p class="text-base mb-4 text-gray-700">
-          Generate a secure SHA-256 hash from any plaintext for enhanced
-          password protection.
+          Generate a secure HMAC hash from any plaintext for enhanced password
+          protection.
         </p>
         <form
-          id="generate-sha256-hash-form"
-          onsubmit="event.preventDefault(); onSubmitGenerateSHA256Hash();"
+          id="generate-hash-form"
+          onsubmit="onSubmitGenerateHash(event);"
           class="mb-6"
         >
           <input
             type="text"
-            id="input-sha256-text"
+            id="input-text"
             name="plaintext"
             placeholder="Plain Text"
             class="input"
             required
           />
+          <input
+            type="text"
+            id="input-key"
+            name="key"
+            placeholder="Key"
+            class="input"
+            required
+          />
+          <select id="algorithm" name="algorithm" class="input" required>
+            <option value="createSHA256">SHA-256</option>
+            <option value="createSHA512">SHA-512</option>
+            <option value="createMD5">MD5</option>
+          </select>
           <div class="flex flex-col sm:flex-row justify-between gap-2">
             <button type="submit" class="button button-solid">
               Generate Hash
@@ -302,7 +339,7 @@
             <button
               type="button"
               class="button button-solid"
-              onclick="resetSHA256FirstForm()"
+              onclick="resetFirstForm()"
             >
               Reset
             </button>
@@ -311,39 +348,51 @@
         <div class="flex items-center gap-2 hidden mb-4">
           <input
             type="text"
-            id="sha256-hash-output"
+            id="hash-output"
             class="input flex-1"
             style="margin-bottom: 0px"
             readonly
           />
-          <button
-            onclick="copySHA256ToClipboard()"
-            class="button button-outline"
-          >
+          <button onclick="copyToClipboard()" class="button button-outline">
             Copy
           </button>
         </div>
         <h2 class="text-xl font-semibold mb-2">Verify</h2>
         <p class="text-base mb-4 text-gray-700">
-          Verify if a plaintext matches a specific SHA-256 hash, ensuring secure
+          Verify if a plaintext matches a specific HMAC hash, ensuring secure
           login validation.
         </p>
-        <form
-          id="compare-sha256-hash-form"
-          onsubmit="event.preventDefault(); onSubmitCompareSHA256Hash();"
-        >
+        <form id="compare-hash-form" onsubmit="onSubmitCompareHash(event);">
           <input
             type="text"
-            id="sha256-data-to-compare"
+            id="data-to-compare"
             name="data-to-compare"
             placeholder="Plain Text"
             class="input"
             required
           />
+          <input
+            type="text"
+            id="key-to-compare"
+            name="key-to-compare"
+            placeholder="Key"
+            class="input"
+            required
+          />
+          <select
+            id="algorithm-compare"
+            name="algorithm"
+            class="input"
+            required
+          >
+            <option value="createSHA256">SHA-256</option>
+            <option value="createSHA512">SHA-512</option>
+            <option value="createMD5">MD5</option>
+          </select>
           <div class="flex items-center gap-2 mb-4">
             <input
               type="text"
-              id="sha256-hash-to-compare"
+              id="hash-to-compare"
               name="hash-to-compare"
               placeholder="Hash"
               class="input"
@@ -352,7 +401,7 @@
             />
             <button
               type="button"
-              onclick="pasteSHA256FromClipboard()"
+              onclick="pasteFromClipboard()"
               class="button button-outline"
             >
               Paste
@@ -365,118 +414,100 @@
             <button
               type="button"
               class="button button-solid"
-              onclick="resetSHA256SecondForm()"
+              onclick="resetSecondForm()"
             >
               Reset
             </button>
           </div>
         </form>
         <div
-          id="sha256-compare-hash-result"
+          id="compare-hash-result"
           class="result"
           style="display: none"
         ></div>
       </section>
       <section id="faq" class="flex flex-col gap-4">
         <h2 class="text-xl font-semibold">FAQ - Frequently Asked Questions</h2>
+
+        <!-- About HMAC Section -->
         <section
-          id="about-sha256"
+          id="about-hmac"
           class="flex flex-col bg-white border rounded-md p-4 gap-2"
         >
-          <h3 class="text-lg font-semibold">What is SHA-256?</h3>
+          <h3 class="text-lg font-semibold">What is HMAC?</h3>
           <p class="text-base text-gray-700">
-            SHA-256 (Secure Hash Algorithm 256-bit) is part of the SHA-2 family
-            of cryptographic hash functions, designed by the NSA. It generates a
-            fixed 256-bit hash value from any input data, widely used for
-            securing passwords, digital signatures, and data integrity checks.
+            HMAC (Hash-based Message Authentication Code) is a specific type of
+            message authentication code (MAC) that involves a cryptographic hash
+            function and a secret cryptographic key. It is used to verify both
+            the data integrity and the authenticity of a message.
           </p>
         </section>
-        <section id="security-of-sha256" class="bg-white border rounded-md p-4">
-          <h3 class="text-lg font-semibold mb-2">Is SHA-256 Secure?</h3>
+
+        <!-- Hash Details Section -->
+        <section id="hash-info" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">How HMAC Works</h3>
           <p class="text-base text-gray-700 mb-4">
-            SHA-256 is currently considered secure and is widely used in various
-            security protocols. Unlike its predecessor, SHA-1, it has no known
-            vulnerabilities, making it suitable for modern cryptographic
-            applications.
+            HMAC uses a combination of a hash function (such as SHA-256 or MD5)
+            and a secret key. The secret key is combined with the message using
+            a hashing algorithm to produce a hash value that can be used for
+            both verifying the integrity of the message and ensuring that it
+            hasn't been tampered with.
+          </p>
+          <p class="text-base text-gray-700 mb-4">
+            The result is a secure code that can be used to confirm that the
+            sender of the message had access to the shared secret key,
+            preventing forgeries.
           </p>
         </section>
-        <section
-          id="hash-details"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-xl font-semibold">Hash Details</h3>
-          <p class="text-base text-gray-700 mb-2">
-            The SHA-256 hash consists of 64 hexadecimal characters, representing
-            256 bits of data. Each character is in the range of 0-9 and a-f.
+
+        <!-- Field Explanation Section -->
+        <section id="field-info" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Field Explanations</h3>
+          <p class="text-base text-gray-700 mb-4">
+            <strong>Key:</strong> The secret cryptographic key used in
+            combination with the hash function. The key ensures that only
+            someone with access to the key can verify the HMAC.
           </p>
-          <ul class="list-disc pl-5 text-base text-gray-700 mb-2">
-            <li>
-              <strong>Length:</strong> 64 hexadecimal characters (256 bits)
-            </li>
-            <li>
-              <strong>Output Format:</strong> Typically displayed as a
-              64-character hexadecimal string.
-            </li>
-            <li>
-              <strong>Speed:</strong> SHA-256 is slower than MD5 or SHA-1, but
-              its security benefits outweigh the speed difference.
-            </li>
-          </ul>
-          <p class="text-base text-gray-700 mb-2">
-            <strong>Example Explained:</strong> Consider the SHA-256 hash
-            <code>
-              f7c3bc1d808e04732adf679965ccc34ca7ae3441ef9b0e4a9a3e8a76b133c92f</code
-            >. This hash is structured as follows:
+          <p class="text-base text-gray-700 mb-4">
+            <strong>Message (Plain Text):</strong> The data or message you want
+            to protect with the HMAC. The hash function will be applied to this
+            message along with the secret key to generate the HMAC.
           </p>
-          <ul class="list-disc pl-5 text-base text-gray-700">
-            <li>
-              <strong>Hash Value:</strong>
-              <code
-                >f7c3bc1d808e04732adf679965ccc34ca7ae3441ef9b0e4a9a3e8a76b133c92f</code
+          <p class="text-base text-gray-700 mb-4">
+            <strong>Hash Function:</strong> The cryptographic hash function used
+            to process the message and the key. Common hash functions used in
+            HMAC include SHA-256, SHA-512, and MD5.
+          </p>
+        </section>
+
+        <!-- Relevant Links Section -->
+        <section id="resources" class="flex flex-col gap-4">
+          <h2 class="text-xl font-semibold">Relevant Links</h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 border rounded bg-white">
+              <a
+                href="https://en.wikipedia.org/wiki/HMAC"
+                target="_blank"
+                rel="external noopener noreferrer"
+                aria-label="Wikipedia page for HMAC - External link"
+                class="text-blue-600 hover:text-blue-800 hover:underline"
               >
-            </li>
-          </ul>
-        </section>
-        <section
-          id="password-hashing"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-lg font-semibold">What is Password Hashing?</h3>
-          <p class="text-base text-gray-700">
-            Password hashing is a security technique used to transform a
-            password into a fixed-size string of characters, which is designed
-            to be impossible to reverse. It helps protect the password's
-            original text while verifying user credentials without storing the
-            actual password.
-          </p>
-        </section>
-      </section>
-      <section id="resources" class="flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">Relevant Links</h2>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="p-4 border rounded bg-white">
-            <a
-              href="https://en.wikipedia.org/wiki/SHA-2"
-              target="_blank"
-              rel="external noopener noreferrer"
-              aria-label="Wikipedia page for SHA-256 - External link"
-              class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Wikipedia: SHA-256</a
-            >
+                Wikipedia: HMAC
+              </a>
+            </div>
+            <div class="p-4 border rounded bg-white">
+              <a
+                href="https://tools.ietf.org/html/rfc2104"
+                target="_blank"
+                rel="external noopener noreferrer"
+                aria-label="RFC 2104 Specification - External link"
+                class="text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                RFC 2104: HMAC Specification
+              </a>
+            </div>
           </div>
-          <div class="p-4 border rounded bg-white">
-            <a
-              href="https://tools.ietf.org/html/rfc6234"
-              target="_blank"
-              rel="external noopener noreferrer"
-              aria-label="SHA-256 Specification RFC 6234 - External link"
-              class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              SHA-256 Specification (RFC 6234)</a
-            >
-          </div>
-        </div>
+        </section>
       </section>
     </main>
     <footer class="bg-gray-800 text-white p-4 mt-8">

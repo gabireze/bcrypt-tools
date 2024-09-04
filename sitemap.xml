@@ -17,8 +17,38 @@
 		<priority>0.80</priority>
 	</url>
 	<url>
+		<loc>https://bcrypt.tools/sha1</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
 		<loc>https://bcrypt.tools/sha256</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
+		<loc>https://bcrypt.tools/sha512</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
+		<loc>https://bcrypt.tools/pbkdf2</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
+		<loc>https://bcrypt.tools/argon2</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
+		<loc>https://bcrypt.tools/crc32</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
+		<priority>0.80</priority>
+	</url>
+	<url>
+		<loc>https://bcrypt.tools/hmac</loc>
+		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>

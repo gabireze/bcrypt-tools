@@ -4,4 +4,10 @@
 /thank-you.html       /thank-you       301
 /md5.html             /md5             301
 /md4.html             /md4             301
+/sha1.html            /sha1            301
 /sha256.html          /sha256          301
+/sha512.html          /sha512          301
+/pbkdf2.html          /pbkdf2          301
+/argon2.html          /argon2          301
+/crc32.html           /crc32           301
+/hmac.html            /hmac            301

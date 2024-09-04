@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bcrypt Hash Generator and Verifier Tool</title>
+    <title>PBKDF2 Hash Generator and Verifier Tool</title>
     <meta
       name="description"
-      content="A secure bcrypt hash generator and verifier tool to enhance data protection. Generate and verify bcrypt hashes for your passwords and sensitive data online."
+      content="A secure PBKDF2 hash generator and verifier tool to enhance data protection. Generate and verify PBKDF2 hashes for your passwords and sensitive data online."
     />
     <meta
       name="keywords"
-      content="bcrypt, hash generator, hash verifier, data encryption, secure passwords, bcrypt hashing"
+      content="pbkdf2, hash generator, hash verifier, data encryption, secure passwords, pbkdf2 hashing"
     />
-    <link rel="canonical" href="https://bcrypt.tools" />
+    <link rel="canonical" href="https://bcrypt.tools/pbkdf2" />
     <!-- Favicon -->
     <link
       rel="apple-touch-icon"
@@ -42,15 +42,15 @@
     <meta name="msapplication-config" content="/browserconfig.xml" />
     <meta name="theme-color" content="#ffffff" />
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://bcrypt.tools/" />
+    <meta property="og:url" content="https://bcrypt.tools/pbkdf2" />
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Bcrypt Hash Generator and Verifier Tool"
+      content="PBKDF2 Hash Generator and Verifier Tool"
     />
     <meta
       property="og:description"
-      content="Securely generate and verify bcrypt hashes online."
+      content="Securely generate and verify PBKDF2 hashes online."
     />
     <meta
       property="og:image"
@@ -69,14 +69,14 @@
     ></script>
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://bcrypt.tools/" />
+    <meta property="twitter:url" content="https://bcrypt.tools/pbkdf2" />
     <meta
       name="twitter:title"
-      content="Bcrypt Hash Generator and Verifier Tool"
+      content="PBKDF2 Hash Generator and Verifier Tool"
     />
     <meta
       name="twitter:description"
-      content="Securely generate and verify bcrypt hashes online."
+      content="Securely generate and verify PBKDF2 hashes online."
     />
     <meta
       name="twitter:image"
@@ -88,69 +88,140 @@
     />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Bcrypt -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"
-      async
-    ></script>
     <script>
-      const onSubmitGenerateHash = (event) => {
-        let bcrypt = dcodeIO.bcrypt;
-        const dataInput = document.getElementById("input-text");
-        const saltInput = document.getElementById("salt-count");
-        if (dataInput.value.trim() === "") {
+      const onSubmitGenerateHash = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById("input-text").value;
+        const salt = document.getElementById("salt-text").value;
+        const iterations = parseInt(
+          document.getElementById("iterations-count").value,
+          10
+        );
+
+        if (!text || !salt || !iterations) {
           showAlert("All fields are required!");
           return;
         }
-        const data = dataInput.value;
-        const salts = saltInput.value || 10;
-        const salt = bcrypt.genSaltSync(parseInt(salts));
-        const hash = bcrypt.hashSync(data, salt);
-        document.getElementById("hash-output").value = hash;
-        document
-          .getElementById("hash-output")
-          .parentElement.classList.remove("hidden");
+
+        try {
+          const encodedText = new TextEncoder().encode(text);
+          const encodedSalt = new TextEncoder().encode(salt);
+
+          const keyMaterial = await crypto.subtle.importKey(
+            "raw",
+            encodedText,
+            { name: "PBKDF2" },
+            false,
+            ["deriveBits", "deriveKey"]
+          );
+
+          const key = await crypto.subtle.deriveKey(
+            {
+              name: "PBKDF2",
+              salt: encodedSalt,
+              iterations: iterations,
+              hash: "SHA-256",
+            },
+            keyMaterial,
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+          );
+
+          const exportedKey = await crypto.subtle.exportKey("raw", key);
+          const hash = Array.from(new Uint8Array(exportedKey))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
+
+          document.getElementById("hash-output").value = hash;
+          document
+            .getElementById("hash-output")
+            .parentElement.classList.remove("hidden");
+        } catch (error) {
+          console.error(error);
+          showAlert("Error generating the hash!");
+        }
       };
 
-      const onSubmitCompareHash = (event) => {
-        let bcrypt = dcodeIO.bcrypt;
+      const onSubmitCompareHash = async (event) => {
+        event.preventDefault();
+
         const data = document.getElementById("data-to-compare").value;
+        const salt = document.getElementById("salt-to-compare").value;
+        const iterations = parseInt(
+          document.getElementById("iterations-to-compare").value,
+          10
+        );
         const hash = document.getElementById("hash-to-compare").value;
-        if (data.trim() === "" || hash.trim() === "") {
+
+        if (!data || !salt || !iterations || !hash) {
           showAlert("All fields are required for comparison!");
           return;
         }
-        const isMatch = bcrypt.compareSync(data, hash);
-        document.getElementById("compare-hash-result").textContent = isMatch
-          ? "Match"
-          : "Do not match";
-        const resultElement = document.getElementById("compare-hash-result");
-        resultElement.textContent = isMatch ? "Match" : "Do not match";
 
-        resultElement.classList.remove(
-          "bg-green-100",
-          "text-green-800",
-          "bg-red-100",
-          "text-red-800",
-          "border-green-400",
-          "border-red-400"
-        );
+        try {
+          const encodedText = new TextEncoder().encode(data);
+          const encodedSalt = new TextEncoder().encode(salt);
 
-        if (isMatch) {
-          resultElement.classList.add(
+          const keyMaterial = await crypto.subtle.importKey(
+            "raw",
+            encodedText,
+            { name: "PBKDF2" },
+            false,
+            ["deriveBits", "deriveKey"]
+          );
+
+          const derivedKey = await crypto.subtle.deriveKey(
+            {
+              name: "PBKDF2",
+              salt: encodedSalt,
+              iterations: iterations,
+              hash: "SHA-256",
+            },
+            keyMaterial,
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+          );
+
+          const exportedKey = await crypto.subtle.exportKey("raw", derivedKey);
+          const derivedHash = Array.from(new Uint8Array(exportedKey))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
+
+          const isMatch = derivedHash === hash;
+
+          const resultElement = document.getElementById("compare-hash-result");
+          resultElement.textContent = isMatch ? "Match" : "Do not match";
+          resultElement.classList.remove(
             "bg-green-100",
             "text-green-800",
-            "border-green-400"
-          );
-        } else {
-          resultElement.classList.add(
             "bg-red-100",
             "text-red-800",
+            "border-green-400",
             "border-red-400"
           );
-        }
 
-        resultElement.style.display = "block";
+          if (isMatch) {
+            resultElement.classList.add(
+              "bg-green-100",
+              "text-green-800",
+              "border-green-400"
+            );
+          } else {
+            resultElement.classList.add(
+              "bg-red-100",
+              "text-red-800",
+              "border-red-400"
+            );
+          }
+
+          resultElement.style.display = "block";
+        } catch (error) {
+          console.error(error);
+          showAlert("Error comparing the hash!");
+        }
       };
 
       const copyToClipboard = () => {
@@ -228,19 +299,17 @@
     <header class="bg-white p-4">
       <h1 class="text-2xl font-bold text-center mb-2">
         <a href="/" class="hover:underline">
-          Bcrypt.tools - Bcrypt Hash Generator and Verifier Tool
+          Bcrypt.tools - PBKDF2 Hash Generator and Verifier Tool
         </a>
       </h1>
       <p class="text-gray-600 text-center">
-        Easily generate and verify bcrypt hashes for your passwords and
+        Easily generate and verify PBKDF2 hashes for your passwords and
         sensitive data online.
       </p>
       <nav class="mt-4">
         <ul class="flex justify-center space-x-4">
           <li>
-            <a href="/" class="text-blue-500 hover:text-blue-700 active"
-              >Bcrypt</a
-            >
+            <a href="/" class="text-blue-500 hover:text-blue-700">Bcrypt</a>
           </li>
           <li>
             <a href="/md4" class="text-blue-500 hover:text-blue-700">MD4</a>
@@ -262,7 +331,7 @@
             >
           </li>
           <li>
-            <a href="/pbkdf2" class="text-blue-500 hover:text-blue-700"
+            <a href="/pbkdf2" class="text-blue-500 hover:text-blue-700 active"
               >PBKDF2</a
             >
           </li>
@@ -284,12 +353,12 @@
       <section id="hash-generator" class="bg-white border rounded-md p-4">
         <h2 class="text-xl font-semibold mb-2">Encrypt</h2>
         <p class="text-base mb-4 text-gray-700">
-          Generate a secure bcrypt hash from any plaintext for enhanced password
+          Generate a secure PBKDF2 hash from any plaintext for enhanced password
           protection.
         </p>
         <form
           id="generate-hash-form"
-          onsubmit="event.preventDefault(); onSubmitGenerateHash();"
+          onsubmit="onSubmitGenerateHash(event);"
           class="mb-6"
         >
           <input
@@ -301,14 +370,21 @@
             required
           />
           <input
+            type="text"
+            id="salt-text"
+            name="salt"
+            placeholder="Salt"
+            class="input"
+            required
+          />
+          <input
             type="number"
-            id="salt-count"
-            name="salts"
-            placeholder="Salt Rounds (default 10)"
+            id="iterations-count"
+            name="iterations"
+            placeholder="Iterations (default 1000)"
             class="input"
             min="1"
-            max="20"
-            value="10"
+            value="1000"
           />
           <div class="flex flex-col sm:flex-row justify-between gap-2">
             <button type="submit" class="button button-solid">
@@ -337,18 +413,31 @@
         </div>
         <h2 class="text-xl font-semibold mb-2">Verify</h2>
         <p class="text-base mb-4 text-gray-700">
-          Verify if a plaintext matches a specific bcrypt hash, ensuring secure
+          Verify if a plaintext matches a specific PBKDF2 hash, ensuring secure
           login validation.
         </p>
-        <form
-          id="compare-hash-form"
-          onsubmit="event.preventDefault(); onSubmitCompareHash();"
-        >
+        <form id="compare-hash-form" onsubmit="onSubmitCompareHash(event);">
           <input
             type="text"
             id="data-to-compare"
             name="data-to-compare"
             placeholder="Plain Text"
+            class="input"
+            required
+          />
+          <input
+            type="text"
+            id="salt-to-compare"
+            name="salt"
+            placeholder="Salt"
+            class="input"
+            required
+          />
+          <input
+            type="number"
+            id="iterations-to-compare"
+            name="iterations"
+            placeholder="Iterations"
             class="input"
             required
           />
@@ -391,140 +480,108 @@
       </section>
       <section id="faq" class="flex flex-col gap-4">
         <h2 class="text-xl font-semibold">FAQ - Frequently Asked Questions</h2>
+        <!-- Why PBKDF2? -->
         <section
-          id="about-bcrypt"
+          id="about-pbkdf2"
           class="flex flex-col bg-white border rounded-md p-4 gap-2"
         >
-          <h3 class="text-lg font-semibold">Why Bcrypt?</h3>
+          <h3 class="text-lg font-semibold">Why PBKDF2?</h3>
           <p class="text-base text-gray-700">
-            Bcrypt is a password-hashing function designed to build a
-            cryptographic hash of your data, turning plain text into a secure
-            string that protects against hacking. This tool helps you easily
-            generate and verify bcrypt hashes for your passwords and sensitive
-            information, enhancing your data's security.
-          </p>
-          <p class="text-base text-gray-700">
-            Utilizing a salt to prevent rainbow table attacks and employing a
-            work factor to adjust the difficulty of hash calculations, bcrypt
-            offers a robust solution for securing user credentials and other
-            sensitive data.
+            PBKDF2 (Password-Based Key Derivation Function 2) is a key
+            derivation function designed to secure passwords by using a
+            cryptographic hash, a salt, and multiple iterations. It is used to
+            protect sensitive information like passwords and cryptographic keys
+            by making the hash computation process slower and more resistant to
+            brute-force attacks.
           </p>
         </section>
-        <section id="insights-on-rounds" class="bg-white border rounded-md p-4">
-          <h3 class="text-lg font-semibold mb-2">Insights on Hashing Rounds</h3>
+
+        <!-- Explanation of Fields -->
+        <section id="field-explanation" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Explanation of Fields</h3>
+
+          <!-- Password -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Password</h4>
+            <p class="text-base text-gray-700">
+              This is the input string that will be hashed. It must be provided
+              and cannot be empty. The password is used as part of the key
+              derivation process, and it is crucial to choose a strong password
+              to ensure security.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: The password field must be non-empty.
+            </p>
+          </section>
+
+          <!-- Salt -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Salt</h4>
+            <p class="text-base text-gray-700">
+              Salt is a random value added to the password before hashing. The
+              purpose of salt is to prevent attackers from using precomputed
+              tables (e.g., rainbow tables) to crack the password. Each password
+              should have a unique salt.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Salt must be provided and should be long enough (at
+              least 8 bytes) to provide adequate protection.
+            </p>
+          </section>
+
+          <!-- Iterations -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Iterations</h4>
+            <p class="text-base text-gray-700">
+              This value controls how many times the PBKDF2 function is applied
+              to the password. A higher number of iterations increases the
+              computational cost and makes the hash harder to crack using brute
+              force, but it also takes more time to compute.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Iterations must be a positive integer. The default
+              value is 1000, but you can increase this number for greater
+              security.
+            </p>
+          </section>
+
+          <!-- Hash -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Hash</h4>
+            <p class="text-base text-gray-700">
+              The generated hash is the final output of the PBKDF2 process. It
+              is derived from the password, salt, and iterations. This value is
+              used for securely storing passwords and validating users during
+              login.
+            </p>
+            <p class="text-base text-red-500">
+              Note: The hash is encoded and displayed as a hexadecimal string.
+            </p>
+          </section>
+
+          <!-- Compare Hash -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Compare Hash</h4>
+            <p class="text-base text-gray-700">
+              To verify a password, the provided plain text password and salt
+              are rehashed using the same number of iterations and compared to
+              the stored hash. If the hashes match, the password is correct.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: All fields (plain text, salt, and iterations) must
+              match the original hash parameters to successfully verify the
+              password.
+            </p>
+          </section>
+        </section>
+
+        <section id="hash-info" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Hash Details</h3>
           <p class="text-base text-gray-700 mb-4">
-            Key considerations about computational cost: When hashing your data,
-            the algorithm performs multiple iterations, or "rounds," to produce
-            a secure hash. The number you input does not directly correspond to
-            the iterations, but rather, the algorithm executes
-            <code>2^rounds</code> hashing iterations based on this value.
-          </p>
-          <p class="text-base text-gray-700 mb-4">
-            As per
-            <strong
-              ><a
-                href="https://github.com/garthk"
-                class="text-blue-600 hover:text-blue-800"
-                rel="external noopener noreferrer"
-                target="_blank"
-                >@garthk</a
-              ></strong
-            >, on a 2GHz core, you can approximately expect:
-          </p>
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <p><code>rounds=8</code>: ~40 hashes/sec</p>
-            <p><code>rounds=9</code>: ~20 hashes/sec</p>
-            <p><code>rounds=10</code>: ~10 hashes/sec</p>
-            <p><code>rounds=11</code>: ~5 hashes/sec</p>
-            <p><code>rounds=12</code>: 2-3 hashes/sec</p>
-            <p><code>rounds=13</code>: ~1 hash/sec</p>
-            <p><code>rounds=14</code>: ~1.5 hash/sec</p>
-            <p><code>rounds=15</code>: ~3 hashes/sec</p>
-            <p><code>rounds=25</code>: ~1 hour/hash</p>
-            <p><code>rounds=31</code>: 2-3 days/hash</p>
-          </div>
-        </section>
-        <section
-          id="hash-info"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-xl font-semibold">Hash Details</h3>
-          <p class="text-base text-gray-700 mb-2">
-            The final hash consists of characters from this set:
-            <br /><code
-              >./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$</code
-            ><br />Each generated hash will have a length of 60 characters,
-            embedding the salt and additional parameters in the format:
-          </p>
-          <p class="text-base text-gray-700 mb-2">
-            <code>$[algorithm]$[cost]$[salt][hash]</code>
-          </p>
-          <ul class="list-disc pl-5 text-base text-gray-700 mb-2">
-            <li>
-              The prefix, like <code>"$2a$"</code> or <code>"$2b$"</code>,
-              denotes BCrypt.
-            </li>
-            <li>
-              The cost factor (<code>n</code>) indicates the number of
-              iterations, 2^n.
-            </li>
-            <li>
-              A 16-byte (128-bit) salt, converted to 22 characters when base64
-              encoded.
-            </li>
-            <li>
-              A 24-byte (192-bit) hash, resulting in 31 characters once base64
-              encoded.
-            </li>
-          </ul>
-          <p class="text-base text-gray-700 mb-2">
-            <strong>Example Explained:</strong> Consider the BCrypt hash
-            <code
-              >$2b$10$nOUIs5kJ7naTuTFkBy1veuK0kSxUFXfuaOKdOKf9xYT0KKIGSJwFa</code
-            >. This hash is structured as follows:
-          </p>
-          <ul class="list-disc pl-5 text-base text-gray-700">
-            <li>
-              <strong>Hash-algorithm identifier:</strong>
-              <code>$2b$</code> (denotes BCrypt)
-            </li>
-            <li>
-              <strong>Cost-factor:</strong> <code>10</code> (equivalent to
-              <code>2^10</code> iterations)
-            </li>
-            <li><strong>Salt:</strong> <code>nOUIs5kJ7naTuTFkBy1veu</code></li>
-            <li>
-              <strong>Hash-value:</strong>
-              <code>K0kSxUFXfuaOKdOKf9xYT0KKIGSJwFa</code>
-            </li>
-          </ul>
-        </section>
-        <section
-          id="password-hashing"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-lg font-semibold">What is Password Hashing?</h3>
-          <p class="text-base text-gray-700">
-            Password hashing is a security technique used to transform a
-            password into a fixed-size string of characters, which is designed
-            to be impossible to reverse. It helps protect the password's
-            original text while verifying user credentials without storing the
-            actual password.
-          </p>
-        </section>
-        <section
-          id="hasing-competition"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-lg font-semibold">
-            What is Password Hashing Competition?
-          </h3>
-          <p class="text-base text-gray-700">
-            The Password Hashing Competition (PHC) was a project aimed at
-            identifying new, secure, and efficient password hashing schemes to
-            improve password storage security. It encouraged the development and
-            review of hashing algorithms to withstand advances in hacking
-            techniques.
+            PBKDF2 uses a combination of salt, iteration count, and hash length
+            to generate a strong and secure hash. It is often used in password
+            hashing and key derivation in various security protocols and
+            systems.
           </p>
         </section>
       </section>
@@ -533,46 +590,22 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 border rounded bg-white">
             <a
-              href="https://codahale.com/how-to-safely-store-a-password/"
+              href="https://en.wikipedia.org/wiki/PBKDF2"
               target="_blank"
               rel="external noopener noreferrer"
-              aria-label="How to Safely Store a Password - External link"
+              aria-label="Wikipedia page for PBKDF2 - External link"
               class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              How To Safely Store A Password</a
+              >Wikipedia: PBKDF2</a
             >
           </div>
           <div class="p-4 border rounded bg-white">
             <a
-              href="https://www.openbsd.org/papers/bcrypt-paper.pdf"
+              href="https://tools.ietf.org/html/rfc2898"
               target="_blank"
               rel="external noopener noreferrer"
-              aria-label="Bcrypt Paper PDF - External link"
+              aria-label="PBKDF2 Specification RFC 2898 - External link"
               class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Bcrypt Paper (PDF)</a
-            >
-          </div>
-          <div class="p-4 border rounded bg-white">
-            <a
-              href="https://en.wikipedia.org/wiki/Bcrypt"
-              target="_blank"
-              rel="external noopener noreferrer"
-              aria-label="Wikipedia page for Bcrypt - External link"
-              class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Wikipedia: Bcrypt</a
-            >
-          </div>
-          <div class="p-4 border rounded bg-white">
-            <a
-              href="https://github.com/dcodeIO/bcrypt.js"
-              target="_blank"
-              rel="external noopener noreferrer"
-              aria-label="Bcrypt.js Repository on GitHub - External link"
-              class="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Bcrypt.js Repository on GitHub</a
+              >PBKDF2 Specification (RFC 2898)</a
             >
           </div>
         </div>
@@ -615,37 +648,6 @@
             >Terms of Use</a
           >
         </div>
-        <form
-          method="POST"
-          action="https://mainnet.demo.btcpayserver.org/api/v1/invoices"
-          class="flex flex-col items-center justify-center p-2 order-first sm:order-last"
-          target="_blank"
-          rel="external noopener noreferrer"
-        >
-          <input
-            type="hidden"
-            name="storeId"
-            value="AAf9d69FnaNp1E5HxQjRT41Pqv9bc8aoBkFtcxvpEvrH"
-          />
-          <input
-            type="hidden"
-            name="browserRedirect"
-            value="https://bcrypt.tools/thank-you"
-          />
-          <input
-            type="hidden"
-            name="notifyEmail"
-            value="d526bd7ff1e34e0ab23d9dc8dcc4d45b@domainsbyproxy.com"
-          />
-          <input type="hidden" name="currency" value="BTC" />
-          <button
-            type="submit"
-            name="submit"
-            class="flex items-center bg-grey-800 text-white outline outline-1 font-semibold py-2 px-4 rounded inline-flex"
-          >
-            Donate with Bitcoin
-          </button>
-        </form>
       </div>
     </footer>
     <style>

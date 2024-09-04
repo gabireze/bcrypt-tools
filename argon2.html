@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Argon2 Hash Generator and Verifier Tool</title>
+    <meta
+      name="description"
+      content="A secure Argon2 hash generator and verifier tool to enhance data protection. Generate and verify Argon2 hashes for your passwords and sensitive data online."
+    />
+    <meta
+      name="keywords"
+      content="argon2, hash generator, hash verifier, data encryption, secure passwords, argon2 hashing"
+    />
+    <link rel="canonical" href="https://bcrypt.tools/argon2" />
+    <!-- Favicon -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/images/favicon/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/images/favicon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/images/favicon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link
+      rel="mask-icon"
+      href="/images/favicon/safari-pinned-tab.svg"
+      color="#5bbad5"
+    />
+    <link rel="shortcut icon" href="/images/favicon/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://bcrypt.tools/argon2" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Argon2 Hash Generator and Verifier Tool"
+    />
+    <meta
+      property="og:description"
+      content="Securely generate and verify Argon2 hashes online."
+    />
+    <meta
+      property="og:image"
+      content="https://bcrypt.tools/images/social.png"
+    />
+    <meta
+      property="og:image:alt"
+      content="An image featuring the text 'bcrypt.tools' in white on a blue background."
+    />
+    <!-- Google Meta Tags -->
+    <meta name="google-adsense-account" content="ca-pub-7390955753222656" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7390955753222656"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://bcrypt.tools/argon2" />
+    <meta
+      name="twitter:title"
+      content="Argon2 Hash Generator and Verifier Tool"
+    />
+    <meta
+      name="twitter:description"
+      content="Securely generate and verify Argon2 hashes online."
+    />
+    <meta
+      name="twitter:image"
+      content="https://bcrypt.tools/images/social.png"
+    />
+    <meta
+      property="twitter:image:alt"
+      content="An image featuring the text 'bcrypt.tools' in white on a blue background."
+    />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Argon2 API -->
+    <script src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/argon2.umd.min.js"></script>
+    <script>
+      const validateInputs = (inputs) => {
+        const {
+          password,
+          salt,
+          timeCost,
+          memoryCost,
+          parallelism,
+          hashLength,
+        } = inputs;
+
+        if (!password || password.trim() === "") {
+          showAlert("Password is required and cannot be empty.");
+          return false;
+        }
+        if (!salt || salt.length < 8) {
+          showAlert("Salt is required and must be at least 8 bytes long.");
+          return false;
+        }
+        if (!timeCost || timeCost < 1) {
+          showAlert("Iterations (time cost) should be a positive number.");
+          return false;
+        }
+        if (!parallelism || parallelism < 1) {
+          showAlert("Parallelism should be a positive number.");
+          return false;
+        }
+        if (!hashLength || hashLength < 4) {
+          showAlert("Hash length must be at least 4 bytes.");
+          return false;
+        }
+        if (!memoryCost || memoryCost < 8 * parallelism) {
+          showAlert(
+            `Memory size should be at least 8 * parallelism (${
+              8 * parallelism
+            } KiB).`
+          );
+          return false;
+        }
+
+        return true;
+      };
+
+      const onSubmitGenerateHash = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById("input-text").value;
+        const salt = document.getElementById("salt-text").value;
+        const timeCost = parseInt(
+          document.getElementById("time-cost").value,
+          10
+        );
+        const memoryCost = parseInt(
+          document.getElementById("memory-cost").value,
+          10
+        );
+        const parallelism = parseInt(
+          document.getElementById("parallelism").value,
+          10
+        );
+        const hashLength = parseInt(
+          document.getElementById("hash-length").value,
+          10
+        );
+        const argonType = document.getElementById("argon-type").value;
+
+        const inputs = {
+          password: text,
+          salt,
+          timeCost,
+          memoryCost,
+          parallelism,
+          hashLength,
+        };
+
+        // Validação dos inputs
+        if (!validateInputs(inputs)) {
+          return;
+        }
+
+        try {
+          const hash = await hashwasm[argonType]({
+            password: text,
+            salt: salt,
+            parallelism: parallelism,
+            iterations: timeCost,
+            memorySize: memoryCost,
+            hashLength: hashLength,
+            outputType: "encoded",
+          });
+
+          document.getElementById("hash-output").value = hash;
+          document
+            .getElementById("hash-output")
+            .parentElement.classList.remove("hidden");
+        } catch (error) {
+          console.error(error);
+          showAlert("Error generating the hash!");
+        }
+      };
+
+      const onSubmitCompareHash = (event) => {
+        const data = document.getElementById("data-to-compare").value;
+        const hash = document.getElementById("hash-to-compare").value;
+
+        if (data.trim() === "" || hash.trim() === "") {
+          showAlert("All fields are required for comparison!");
+          return;
+        }
+
+        hashwasm
+          .argon2Verify({ password: data, hash: hash })
+          .then((isMatch) => {
+            const resultElement = document.getElementById(
+              "compare-hash-result"
+            );
+            resultElement.textContent = isMatch ? "Match" : "Do not match";
+
+            resultElement.classList.remove(
+              "bg-green-100",
+              "text-green-800",
+              "bg-red-100",
+              "text-red-800",
+              "border-green-400",
+              "border-red-400"
+            );
+
+            if (isMatch) {
+              resultElement.classList.add(
+                "bg-green-100",
+                "text-green-800",
+                "border-green-400"
+              );
+            } else {
+              resultElement.classList.add(
+                "bg-red-100",
+                "text-red-800",
+                "border-red-400"
+              );
+            }
+
+            resultElement.style.display = "block";
+          })
+          .catch((error) => {
+            console.error("Error verifying the hash", error);
+            showAlert("Error verifying the hash!");
+          });
+      };
+
+      const copyToClipboard = () => {
+        const hashOutput = document.getElementById("hash-output");
+        navigator.clipboard
+          .writeText(hashOutput.value)
+          .then(() => showAlert("Hash copied to clipboard!"))
+          .catch((err) => console.error("Error copying to clipboard", err));
+      };
+
+      const pasteFromClipboard = () => {
+        navigator.clipboard
+          .readText()
+          .then((text) => {
+            const hashToCompareInput =
+              document.getElementById("hash-to-compare");
+            hashToCompareInput.value = text;
+            showAlert("Text pasted into the input!");
+          })
+          .catch((err) => {
+            console.error("Error pasting text from clipboard", err);
+          });
+      };
+
+      const showAlert = (message) => {
+        let existingAlert = document.querySelector(".alert-container");
+        if (existingAlert) {
+          existingAlert.remove();
+        }
+
+        const alertContainer = document.createElement("div");
+        alertContainer.textContent = message;
+        alertContainer.classList.add(
+          "alert-container",
+          "absolute",
+          "top-5",
+          "left-1/2",
+          "-translate-x-1/2",
+          "bg-blue-500",
+          "text-white",
+          "px-4",
+          "py-2",
+          "rounded",
+          "shadow-lg",
+          "transition-opacity",
+          "opacity-100"
+        );
+
+        document.body.appendChild(alertContainer);
+
+        setTimeout(() => {
+          alertContainer.classList.replace("opacity-100", "opacity-0");
+        }, 2500);
+
+        setTimeout(() => {
+          alertContainer.remove();
+        }, 3000);
+      };
+
+      const resetFirstForm = () => {
+        document.getElementById("generate-hash-form").reset();
+        document
+          .getElementById("hash-output")
+          .parentElement.classList.add("hidden");
+      };
+
+      const resetSecondForm = () => {
+        document.getElementById("compare-hash-form").reset();
+        document.getElementById("compare-hash-result").style.display = "none";
+      };
+    </script>
+  </head>
+  <body class="flex flex-col w-full bg-gray-100">
+    <div id="alert-container" class="hidden"></div>
+    <header class="bg-white p-4">
+      <h1 class="text-2xl font-bold text-center mb-2">
+        <a href="/" class="hover:underline">
+          Bcrypt.tools - Argon2 Hash Generator and Verifier Tool
+        </a>
+      </h1>
+      <p class="text-gray-600 text-center">
+        Easily generate and verify Argon2 hashes for your passwords and
+        sensitive data online.
+      </p>
+      <nav class="mt-4">
+        <ul class="flex justify-center space-x-4">
+          <li>
+            <a href="/" class="text-blue-500 hover:text-blue-700">Bcrypt</a>
+          </li>
+          <li>
+            <a href="/md4" class="text-blue-500 hover:text-blue-700">MD4</a>
+          </li>
+          <li>
+            <a href="/md5" class="text-blue-500 hover:text-blue-700">MD5</a>
+          </li>
+          <li>
+            <a href="/sha1" class="text-blue-500 hover:text-blue-700">SHA-1</a>
+          </li>
+          <li>
+            <a href="/sha256" class="text-blue-500 hover:text-blue-700"
+              >SHA-256</a
+            >
+          </li>
+          <li>
+            <a href="/sha512" class="text-blue-500 hover:text-blue-700"
+              >SHA-512</a
+            >
+          </li>
+          <li>
+            <a href="/pbkdf2" class="text-blue-500 hover:text-blue-700"
+              >PBKDF2</a
+            >
+          </li>
+          <li>
+            <a href="/argon2" class="text-blue-500 hover:text-blue-700 active"
+              >Argon2</a
+            >
+          </li>
+          <li>
+            <a href="/crc32" class="text-blue-500 hover:text-blue-700">CRC32</a>
+          </li>
+          <li>
+            <a href="/hmac" class="text-blue-500 hover:text-blue-700">HMAC</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="mx-auto max-w-4xl p-4 flex flex-col gap-4">
+      <section id="hash-generator" class="bg-white border rounded-md p-4">
+        <h2 class="text-xl font-semibold mb-2">Encrypt</h2>
+        <form
+          id="generate-hash-form"
+          onsubmit="onSubmitGenerateHash(event);"
+          class="mb-6"
+        >
+          <input
+            type="text"
+            id="input-text"
+            name="plaintext"
+            placeholder="Plain Text"
+            class="input"
+            required
+          />
+          <input
+            type="text"
+            id="salt-text"
+            name="salt"
+            placeholder="Salt (at least 8 bytes)"
+            class="input"
+            required
+          />
+          <input
+            type="number"
+            id="time-cost"
+            name="time-cost"
+            placeholder="Time Cost (iterations)"
+            class="input"
+            min="1"
+            value="3"
+          />
+          <input
+            type="number"
+            id="memory-cost"
+            name="memory-cost"
+            placeholder="Memory Cost (KiB)"
+            class="input"
+            min="1024"
+            value="4096"
+          />
+          <input
+            type="number"
+            id="parallelism"
+            name="parallelism"
+            placeholder="Parallelism"
+            class="input"
+            min="1"
+            value="1"
+          />
+          <input
+            type="number"
+            id="hash-length"
+            name="hash-length"
+            placeholder="Hash Length (at least 4 bytes)"
+            class="input"
+            min="4"
+            value="32"
+          />
+          <label
+            for="argon-type"
+            class="block mb-2 text-sm font-medium text-gray-700"
+            >Argon2 Type</label
+          >
+          <select id="argon-type" class="input" name="argon-type">
+            <option value="argon2id">Argon2id</option>
+            <option value="argon2i">Argon2i</option>
+            <option value="argon2d">Argon2d</option>
+          </select>
+          <div class="flex flex-col sm:flex-row justify-between gap-2 mt-4">
+            <button type="submit" class="button button-solid">
+              Generate Hash
+            </button>
+            <button
+              type="button"
+              class="button button-solid"
+              onclick="resetFirstForm()"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+        <div class="flex items-center gap-2 hidden mb-4">
+          <input
+            type="text"
+            id="hash-output"
+            class="input flex-1"
+            style="margin-bottom: 0px"
+            readonly
+          />
+          <button onclick="copyToClipboard()" class="button button-outline">
+            Copy
+          </button>
+        </div>
+        <h2 class="text-xl font-semibold mb-2">Verify</h2>
+        <p class="text-base mb-4 text-gray-700">
+          Verify if a plaintext matches a specific Argon2 hash, ensuring secure
+          login validation.
+        </p>
+        <form
+          id="compare-hash-form"
+          onsubmit="event.preventDefault(); onSubmitCompareHash();"
+        >
+          <input
+            type="text"
+            id="data-to-compare"
+            name="data-to-compare"
+            placeholder="Plain Text"
+            class="input"
+            required
+          />
+          <div class="flex items-center gap-2 mb-4">
+            <input
+              type="text"
+              id="hash-to-compare"
+              name="hash-to-compare"
+              placeholder="Hash"
+              class="input"
+              style="margin-bottom: 0px"
+              required
+            />
+            <button
+              type="button"
+              onclick="pasteFromClipboard()"
+              class="button button-outline"
+            >
+              Paste
+            </button>
+          </div>
+          <div class="flex flex-col sm:flex-row justify-between gap-2">
+            <button type="submit" class="button button-solid">
+              Verify Hash
+            </button>
+            <button
+              type="button"
+              class="button button-solid"
+              onclick="resetSecondForm()"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+        <div
+          id="compare-hash-result"
+          class="result"
+          style="display: none"
+        ></div>
+      </section>
+      <section id="faq" class="flex flex-col gap-4">
+        <h2 class="text-xl font-semibold">FAQ - Frequently Asked Questions</h2>
+
+        <!-- What is Argon2? -->
+        <section
+          id="about-argon2"
+          class="flex flex-col bg-white border rounded-md p-4 gap-2"
+        >
+          <h3 class="text-lg font-semibold">What is Argon2?</h3>
+          <p class="text-base text-gray-700">
+            Argon2 is a key derivation function designed to protect against
+            brute-force attacks by requiring significant memory and
+            computational resources. It is used in modern password hashing
+            systems to enhance security.
+          </p>
+        </section>
+
+        <!-- Explanation of Fields -->
+        <section id="field-explanation" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Explanation of Fields</h3>
+
+          <!-- Password -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Password</h4>
+            <p class="text-base text-gray-700">
+              This is the input string that will be hashed. It must be provided,
+              and cannot be empty.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: The password field must be non-empty.
+            </p>
+          </section>
+
+          <!-- Salt -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Salt</h4>
+            <p class="text-base text-gray-700">
+              A salt is a random value added to the input password before
+              hashing. It helps prevent rainbow table attacks by ensuring that
+              identical passwords produce different hashes. The salt must be at
+              least 8 characters long.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: The salt must be at least 8 characters long.
+            </p>
+          </section>
+
+          <!-- Time Cost (Iterations) -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Time Cost (Iterations)</h4>
+            <p class="text-base text-gray-700">
+              This parameter specifies the number of iterations or the amount of
+              time spent computing the hash. The higher the number, the longer
+              it takes to compute the hash, making it more resistant to
+              brute-force attacks.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Time cost must be a positive integer.
+            </p>
+          </section>
+
+          <!-- Memory Cost (RAM Usage) -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Memory Cost (RAM Usage)</h4>
+            <p class="text-base text-gray-700">
+              This parameter defines the amount of memory (in KiB) required for
+              hashing. Increasing the memory cost makes the function more
+              resistant to attacks that use parallelism.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Memory cost must be a positive integer and at least 8
+              times the parallelism value.
+            </p>
+          </section>
+
+          <!-- Parallelism -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Parallelism</h4>
+            <p class="text-base text-gray-700">
+              Parallelism defines the number of threads used to compute the
+              hash. Higher parallelism increases the computational resources
+              required to break the hash, making the system more secure.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Parallelism must be a positive integer greater than or
+              equal to 1.
+            </p>
+          </section>
+
+          <!-- Hash Length -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Hash Length</h4>
+            <p class="text-base text-gray-700">
+              This parameter specifies the length (in bytes) of the final hash
+              output. A minimum length of 4 bytes is required.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: Hash length must be a positive integer and at least 4
+              bytes long.
+            </p>
+          </section>
+
+          <!-- Output Type -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Output Type</h4>
+            <p class="text-base text-gray-700">
+              This defines the format of the hash output. The available options
+              are "hex", "binary", or "encoded". By default, the output is in
+              hexadecimal format.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: The output type must be one of "hex", "binary", or
+              "encoded".
+            </p>
+          </section>
+
+          <!-- Argon2 Type -->
+          <section class="mb-4">
+            <h4 class="text-md font-semibold">Argon2 Type</h4>
+            <p class="text-base text-gray-700">
+              Argon2 has three main types: Argon2d, Argon2i, and Argon2id. Each
+              type offers different levels of protection against certain types
+              of attacks. Argon2id is a hybrid of the other two and is the most
+              commonly recommended.
+            </p>
+            <p class="text-base text-red-500">
+              Validation: The type must be specified as "argon2d", "argon2i", or
+              "argon2id".
+            </p>
+          </section>
+        </section>
+        <section id="hash-info" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Hash Details</h3>
+          <p class="text-base text-gray-700 mb-4">
+            Argon2 is highly configurable with time cost (number of iterations),
+            memory cost (RAM needed), and parallelism (number of threads). It
+            has different variants such as Argon2d, Argon2i, and Argon2id, each
+            offering different levels of resistance to various attacks.
+          </p>
+        </section>
+      </section>
+      <section id="resources" class="flex flex-col gap-4">
+        <h2 class="text-xl font-semibold">Relevant Links</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 border rounded bg-white">
+            <a
+              href="https://en.wikipedia.org/wiki/Argon2"
+              target="_blank"
+              rel="external noopener noreferrer"
+              aria-label="Wikipedia page for Argon2 - External link"
+              class="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Wikipedia: Argon2
+            </a>
+          </div>
+          <div class="p-4 border rounded bg-white">
+            <a
+              href="https://www.ietf.org/rfc/rfc9106.html"
+              target="_blank"
+              rel="external noopener noreferrer"
+              aria-label="Argon2 Specification RFC 9106 - External link"
+              class="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Argon2 Specification (RFC 9106)
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="bg-gray-800 text-white p-4 mt-8">
+      <div
+        class="flex flex-col sm:flex-row max-w-6xl mx-auto flex flex-wrap justify-between items-center"
+      >
+        <div class="p-2 order-2 sm:order-first">
+          &copy; 2024
+          <a
+            href="/"
+            class="text-white hover:text-gray-400"
+            rel="noopener noreferrer"
+            >Bcrypt.tools</a
+          >. All rights reserved.
+        </div>
+        <div class="p-2">
+          Email:
+          <a
+            href="mailto:contact@bcrypt.tools"
+            class="text-white hover:text-gray-400"
+            rel="noopener noreferrer"
+            >contact@bcrypt.tools</a
+          >
+        </div>
+        <div class="p-2">
+          <a
+            href="/privacy-policy"
+            class="text-white hover:text-gray-400"
+            rel="noopener noreferrer"
+            >Privacy Policy</a
+          >
+          |
+          <a
+            href="/terms-of-use"
+            class="text-white hover:text-gray-400"
+            rel="noopener noreferrer"
+            >Terms of Use</a
+          >
+        </div>
+      </div>
+    </footer>
+    <style>
+      .input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      .button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .button-solid {
+        background-color: #4f46e5;
+        color: white;
+        border: 2px solid transparent;
+      }
+
+      .button-outline {
+        background-color: transparent;
+        color: #4f46e5;
+        border: 2px solid #4f46e5;
+      }
+
+      .button-outline:hover {
+        background-color: #4f46e5;
+        color: white;
+      }
+
+      .result {
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        margin-top: 1rem;
+        border-width: 1px;
+      }
+
+      .active {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+
+      code {
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        word-break: break-all;
+        background-color: #f3f4f6;
+      }
+    </style>
+  </body>
+</html>

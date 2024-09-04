@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHA-256 Hash Generator and Verifier Tool</title>
+    <title>CRC32 Hash Generator and Verifier Tool</title>
     <meta
       name="description"
-      content="A secure SHA-256 hash generator and verifier tool to enhance data protection. Generate and verify SHA-256 hashes for your passwords and sensitive data online."
+      content="A simple CRC32 hash generator and verifier tool to ensure data integrity. Generate and verify CRC32 hashes for your files and data online."
     />
     <meta
       name="keywords"
-      content="sha256, hash generator, hash verifier, data encryption, secure passwords, sha256 hashing"
+      content="crc32, hash generator, hash verifier, data integrity, crc32 hashing"
     />
-    <link rel="canonical" href="https://bcrypt.tools/sha256" />
+    <link rel="canonical" href="https://bcrypt.tools/crc32" />
     <!-- Favicon -->
     <link
       rel="apple-touch-icon"
@@ -42,15 +42,15 @@
     <meta name="msapplication-config" content="/browserconfig.xml" />
     <meta name="theme-color" content="#ffffff" />
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://bcrypt.tools/sha256" />
+    <meta property="og:url" content="https://bcrypt.tools/crc32" />
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="SHA-256 Hash Generator and Verifier Tool"
+      content="CRC32 Hash Generator and Verifier Tool"
     />
     <meta
       property="og:description"
-      content="Securely generate and verify SHA-256 hashes online."
+      content="Easily generate and verify CRC32 hashes online for data integrity."
     />
     <meta
       property="og:image"
@@ -69,103 +69,107 @@
     ></script>
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://bcrypt.tools/sha256" />
+    <meta property="twitter:url" content="https://bcrypt.tools/crc32" />
     <meta
       name="twitter:title"
-      content="SHA-256 Hash Generator and Verifier Tool"
+      content="CRC32 Hash Generator and Verifier Tool"
     />
     <meta
       name="twitter:description"
-      content="Securely generate and verify SHA-256 hashes online."
+      content="Easily generate and verify CRC32 hashes online for data integrity."
     />
     <meta
       name="twitter:image"
       content="https://bcrypt.tools/images/social.png"
     />
-    <meta
-      property="twitter:image:alt"
-      content="An image featuring the text 'bcrypt.tools' in white on a blue background."
-    />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- crypto-api -->
-    <script src="https://nf404.github.io/crypto-api/crypto-api.min.js"></script>
+    <!-- CRC32 API -->
+    <script src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/crc32.umd.min.js"></script>
     <script>
-      const onSubmitGenerateSHA256Hash = (event) => {
-        const dataInput = document.getElementById("input-sha256-text");
-        if (dataInput.value.trim() === "") {
+      const onSubmitGenerateHash = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById("input-text").value;
+
+        if (!text) {
           showAlert("All fields are required!");
           return;
         }
-        const data = dataInput.value;
-        const hash = CryptoApi.hash("sha256", data);
-        document.getElementById("sha256-hash-output").value = hash;
-        document
-          .getElementById("sha256-hash-output")
-          .parentElement.classList.remove("hidden");
+
+        try {
+          const hash = await hashwasm.crc32(text);
+          document.getElementById("hash-output").value = hash;
+          document
+            .getElementById("hash-output")
+            .parentElement.classList.remove("hidden");
+        } catch (error) {
+          console.error(error);
+          showAlert("Error generating the hash!");
+        }
       };
 
-      const onSubmitCompareSHA256Hash = (event) => {
-        const data = document.getElementById("sha256-data-to-compare").value;
-        const hash = document.getElementById("sha256-hash-to-compare").value;
+      const onSubmitCompareHash = () => {
+        const data = document.getElementById("data-to-compare").value;
+        const hash = document.getElementById("hash-to-compare").value;
+
         if (data.trim() === "" || hash.trim() === "") {
           showAlert("All fields are required for comparison!");
           return;
         }
-        const computedHash = CryptoApi.hash("sha256", data);
-        const isMatch = computedHash === hash;
-        const resultElement = document.getElementById(
-          "sha256-compare-hash-result"
-        );
-        resultElement.textContent = isMatch ? "Match" : "Do not match";
 
-        resultElement.classList.remove(
-          "bg-green-100",
-          "text-green-800",
-          "bg-red-100",
-          "text-red-800",
-          "border-green-400",
-          "border-red-400"
-        );
+        hashwasm.crc32(data).then((computedHash) => {
+          const isMatch = computedHash === hash;
+          const resultElement = document.getElementById("compare-hash-result");
+          resultElement.textContent = isMatch ? "Match" : "Do not match";
 
-        if (isMatch) {
-          resultElement.classList.add(
+          resultElement.classList.remove(
             "bg-green-100",
             "text-green-800",
-            "border-green-400"
-          );
-        } else {
-          resultElement.classList.add(
             "bg-red-100",
             "text-red-800",
+            "border-green-400",
             "border-red-400"
           );
-        }
 
-        resultElement.style.display = "block";
+          if (isMatch) {
+            resultElement.classList.add(
+              "bg-green-100",
+              "text-green-800",
+              "border-green-400"
+            );
+          } else {
+            resultElement.classList.add(
+              "bg-red-100",
+              "text-red-800",
+              "border-red-400"
+            );
+          }
+
+          resultElement.style.display = "block";
+        });
       };
 
-      const copySHA256ToClipboard = () => {
-        const hashOutput = document.getElementById("sha256-hash-output");
+      const copyToClipboard = () => {
+        const hashOutput = document.getElementById("hash-output");
         navigator.clipboard
           .writeText(hashOutput.value)
           .then(() => showAlert("Hash copied to clipboard!"))
           .catch((err) => console.error("Error copying to clipboard", err));
       };
 
-      const pasteSHA256FromClipboard = () => {
+      const pasteFromClipboard = () => {
         navigator.clipboard
           .readText()
           .then((text) => {
-            const hashToCompareInput = document.getElementById(
-              "sha256-hash-to-compare"
-            );
+            const hashToCompareInput =
+              document.getElementById("hash-to-compare");
             hashToCompareInput.value = text;
             showAlert("Text pasted into the input!");
           })
-          .catch((err) =>
-            console.error("Error pasting text from clipboard", err)
-          );
+          .catch((err) => {
+            console.error("Error pasting text from clipboard", err);
+          });
       };
 
       const showAlert = (message) => {
@@ -203,17 +207,16 @@
         }, 3000);
       };
 
-      const resetSHA256FirstForm = () => {
-        document.getElementById("generate-sha256-hash-form").reset();
+      const resetFirstForm = () => {
+        document.getElementById("generate-hash-form").reset();
         document
-          .getElementById("sha256-hash-output")
+          .getElementById("hash-output")
           .parentElement.classList.add("hidden");
       };
 
-      const resetSHA256SecondForm = () => {
-        document.getElementById("compare-sha256-hash-form").reset();
-        document.getElementById("sha256-compare-hash-result").style.display =
-          "none";
+      const resetSecondForm = () => {
+        document.getElementById("compare-hash-form").reset();
+        document.getElementById("compare-hash-result").style.display = "none";
       };
     </script>
   </head>
@@ -222,12 +225,11 @@
     <header class="bg-white p-4">
       <h1 class="text-2xl font-bold text-center mb-2">
         <a href="/" class="hover:underline">
-          Bcrypt.tools - SHA-256 Hash Generator and Verifier Tool
+          Bcrypt.tools - CRC32 Hash Generator and Verifier Tool
         </a>
       </h1>
       <p class="text-gray-600 text-center">
-        Easily generate and verify SHA-256 hashes for your passwords and
-        sensitive data online.
+        Easily generate and verify CRC32 hashes for your data online.
       </p>
       <nav class="mt-4">
         <ul class="flex justify-center space-x-4">
@@ -244,7 +246,7 @@
             <a href="/sha1" class="text-blue-500 hover:text-blue-700">SHA-1</a>
           </li>
           <li>
-            <a href="/sha256" class="text-blue-500 hover:text-blue-700 active"
+            <a href="/sha256" class="text-blue-500 hover:text-blue-700"
               >SHA-256</a
             >
           </li>
@@ -264,7 +266,9 @@
             >
           </li>
           <li>
-            <a href="/crc32" class="text-blue-500 hover:text-blue-700">CRC32</a>
+            <a href="/crc32" class="text-blue-500 hover:text-blue-700 active"
+              >CRC32</a
+            >
           </li>
           <li>
             <a href="/hmac" class="text-blue-500 hover:text-blue-700">HMAC</a>
@@ -273,23 +277,19 @@
       </nav>
     </header>
     <main class="mx-auto max-w-4xl p-4 flex flex-col gap-4">
-      <section
-        id="sha256-hash-generator"
-        class="bg-white border rounded-md p-4"
-      >
+      <section id="hash-generator" class="bg-white border rounded-md p-4">
         <h2 class="text-xl font-semibold mb-2">Encrypt</h2>
         <p class="text-base mb-4 text-gray-700">
-          Generate a secure SHA-256 hash from any plaintext for enhanced
-          password protection.
+          Generate a CRC32 hash to verify data integrity.
         </p>
         <form
-          id="generate-sha256-hash-form"
-          onsubmit="event.preventDefault(); onSubmitGenerateSHA256Hash();"
+          id="generate-hash-form"
+          onsubmit="onSubmitGenerateHash(event);"
           class="mb-6"
         >
           <input
             type="text"
-            id="input-sha256-text"
+            id="input-text"
             name="plaintext"
             placeholder="Plain Text"
             class="input"
@@ -302,7 +302,7 @@
             <button
               type="button"
               class="button button-solid"
-              onclick="resetSHA256FirstForm()"
+              onclick="resetFirstForm()"
             >
               Reset
             </button>
@@ -311,30 +311,26 @@
         <div class="flex items-center gap-2 hidden mb-4">
           <input
             type="text"
-            id="sha256-hash-output"
+            id="hash-output"
             class="input flex-1"
             style="margin-bottom: 0px"
             readonly
           />
-          <button
-            onclick="copySHA256ToClipboard()"
-            class="button button-outline"
-          >
+          <button onclick="copyToClipboard()" class="button button-outline">
             Copy
           </button>
         </div>
         <h2 class="text-xl font-semibold mb-2">Verify</h2>
         <p class="text-base mb-4 text-gray-700">
-          Verify if a plaintext matches a specific SHA-256 hash, ensuring secure
-          login validation.
+          Verify if a plaintext matches a specific CRC32 hash.
         </p>
         <form
-          id="compare-sha256-hash-form"
-          onsubmit="event.preventDefault(); onSubmitCompareSHA256Hash();"
+          id="compare-hash-form"
+          onsubmit="event.preventDefault(); onSubmitCompareHash();"
         >
           <input
             type="text"
-            id="sha256-data-to-compare"
+            id="data-to-compare"
             name="data-to-compare"
             placeholder="Plain Text"
             class="input"
@@ -343,7 +339,7 @@
           <div class="flex items-center gap-2 mb-4">
             <input
               type="text"
-              id="sha256-hash-to-compare"
+              id="hash-to-compare"
               name="hash-to-compare"
               placeholder="Hash"
               class="input"
@@ -352,7 +348,7 @@
             />
             <button
               type="button"
-              onclick="pasteSHA256FromClipboard()"
+              onclick="pasteFromClipboard()"
               class="button button-outline"
             >
               Paste
@@ -365,14 +361,14 @@
             <button
               type="button"
               class="button button-solid"
-              onclick="resetSHA256SecondForm()"
+              onclick="resetSecondForm()"
             >
               Reset
             </button>
           </div>
         </form>
         <div
-          id="sha256-compare-hash-result"
+          id="compare-hash-result"
           class="result"
           style="display: none"
         ></div>
@@ -380,74 +376,22 @@
       <section id="faq" class="flex flex-col gap-4">
         <h2 class="text-xl font-semibold">FAQ - Frequently Asked Questions</h2>
         <section
-          id="about-sha256"
+          id="about-crc32"
           class="flex flex-col bg-white border rounded-md p-4 gap-2"
         >
-          <h3 class="text-lg font-semibold">What is SHA-256?</h3>
+          <h3 class="text-lg font-semibold">What is CRC32?</h3>
           <p class="text-base text-gray-700">
-            SHA-256 (Secure Hash Algorithm 256-bit) is part of the SHA-2 family
-            of cryptographic hash functions, designed by the NSA. It generates a
-            fixed 256-bit hash value from any input data, widely used for
-            securing passwords, digital signatures, and data integrity checks.
+            CRC32 (Cyclic Redundancy Check) is a hash function commonly used to
+            detect accidental changes to data. It is widely used for checking
+            data integrity in files and network communications.
           </p>
         </section>
-        <section id="security-of-sha256" class="bg-white border rounded-md p-4">
-          <h3 class="text-lg font-semibold mb-2">Is SHA-256 Secure?</h3>
+        <section id="hash-info" class="bg-white border rounded-md p-4">
+          <h3 class="text-lg font-semibold mb-2">Hash Details</h3>
           <p class="text-base text-gray-700 mb-4">
-            SHA-256 is currently considered secure and is widely used in various
-            security protocols. Unlike its predecessor, SHA-1, it has no known
-            vulnerabilities, making it suitable for modern cryptographic
-            applications.
-          </p>
-        </section>
-        <section
-          id="hash-details"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-xl font-semibold">Hash Details</h3>
-          <p class="text-base text-gray-700 mb-2">
-            The SHA-256 hash consists of 64 hexadecimal characters, representing
-            256 bits of data. Each character is in the range of 0-9 and a-f.
-          </p>
-          <ul class="list-disc pl-5 text-base text-gray-700 mb-2">
-            <li>
-              <strong>Length:</strong> 64 hexadecimal characters (256 bits)
-            </li>
-            <li>
-              <strong>Output Format:</strong> Typically displayed as a
-              64-character hexadecimal string.
-            </li>
-            <li>
-              <strong>Speed:</strong> SHA-256 is slower than MD5 or SHA-1, but
-              its security benefits outweigh the speed difference.
-            </li>
-          </ul>
-          <p class="text-base text-gray-700 mb-2">
-            <strong>Example Explained:</strong> Consider the SHA-256 hash
-            <code>
-              f7c3bc1d808e04732adf679965ccc34ca7ae3441ef9b0e4a9a3e8a76b133c92f</code
-            >. This hash is structured as follows:
-          </p>
-          <ul class="list-disc pl-5 text-base text-gray-700">
-            <li>
-              <strong>Hash Value:</strong>
-              <code
-                >f7c3bc1d808e04732adf679965ccc34ca7ae3441ef9b0e4a9a3e8a76b133c92f</code
-              >
-            </li>
-          </ul>
-        </section>
-        <section
-          id="password-hashing"
-          class="flex flex-col bg-white border rounded-md p-4 gap-2"
-        >
-          <h3 class="text-lg font-semibold">What is Password Hashing?</h3>
-          <p class="text-base text-gray-700">
-            Password hashing is a security technique used to transform a
-            password into a fixed-size string of characters, which is designed
-            to be impossible to reverse. It helps protect the password's
-            original text while verifying user credentials without storing the
-            actual password.
+            CRC32 generates a 32-bit checksum for the given data. It is fast and
+            efficient for error detection but is not suitable for cryptographic
+            purposes.
           </p>
         </section>
       </section>
@@ -456,25 +400,25 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 border rounded bg-white">
             <a
-              href="https://en.wikipedia.org/wiki/SHA-2"
+              href="https://en.wikipedia.org/wiki/Cyclic_redundancy_check"
               target="_blank"
               rel="external noopener noreferrer"
-              aria-label="Wikipedia page for SHA-256 - External link"
+              aria-label="Wikipedia page for CRC32 - External link"
               class="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              Wikipedia: SHA-256</a
-            >
+              Wikipedia: CRC32
+            </a>
           </div>
           <div class="p-4 border rounded bg-white">
             <a
-              href="https://tools.ietf.org/html/rfc6234"
+              href="https://tools.ietf.org/html/rfc3385"
               target="_blank"
               rel="external noopener noreferrer"
-              aria-label="SHA-256 Specification RFC 6234 - External link"
+              aria-label="RFC 3385 Specification - External link"
               class="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              SHA-256 Specification (RFC 6234)</a
-            >
+              RFC 3385: CRC32 Specification
+            </a>
           </div>
         </div>
       </section>
