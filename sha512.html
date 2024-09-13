@@ -87,9 +87,13 @@
       content="An image featuring the text 'bcrypt.tools' in white on a blue background."
     />
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
     <!-- Crypto API for SHA-512 -->
-    <script src="https://nf404.github.io/crypto-api/crypto-api.min.js"></script>
+    <script
+      src="https://nf404.github.io/crypto-api/crypto-api.min.js"
+      async
+      crossorigin="anonymous"
+    ></script>
     <script>
       const onSubmitGenerateHash = (event) => {
         const dataInput = document.getElementById("input-text");
