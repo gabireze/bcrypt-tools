@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    { "source": "/md4", "destination": "/md4.html" },
+    { "source": "/md5", "destination": "/md5.html" },
+    { "source": "/sha1", "destination": "/sha1.html" },
+    { "source": "/sha256", "destination": "/sha256.html" },
+    { "source": "/sha512", "destination": "/sha512.html" },
+    { "source": "/argon2", "destination": "/argon2.html" },
+    { "source": "/crc32", "destination": "/crc32.html" },
+    { "source": "/hmac", "destination": "/hmac.html" },
+    { "source": "/pbkdf2", "destination": "/pbkdf2.html" },
+    { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
+    { "source": "/terms-of-use", "destination": "/terms-of-use.html" },
+    { "source": "/thank-you", "destination": "/thank-you.html" },
+    { "source": "/404", "destination": "/404.html" }
+  ]
+}
