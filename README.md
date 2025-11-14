@@ -2,6 +2,9 @@
 
 Bcrypt.tools is an online platform that provides tools for generating and verifying various cryptographic hashes, including bcrypt, Argon2, PBKDF2, HMAC, and more. This project is built using only HTML, CSS with Tailwind, and JavaScript, without any backend frameworks or services. All cryptographic operations are handled using specialized libraries like `bcrypt.js`, `hash-wasm`, and `crypto.subtle`. Access the tool online at [https://bcrypt-tools.vercel.app/](https://bcrypt-tools.vercel.app/).
 
+## GitAds Sponsored
+[![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=gabireze/bcrypt-tools@github)](https://gitads.dev/v1/ad-track?source=gabireze/bcrypt-tools@github)
+
 ## Key Features
 
 ### Hashing Algorithms
