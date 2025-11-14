@@ -66,3 +66,6 @@ Contributions are highly encouraged! If you would like to contribute, please fee
 - [PBKDF2 Specification (RFC 2898)](https://tools.ietf.org/html/rfc2898)
 - [bcrypt.js Repository on GitHub](https://github.com/dcodeIO/bcrypt.js)
 - [hash-wasm Repository on GitHub](https://github.com/Daninet/hash-wasm)
+
+<!-- GitAds-Verify: 12KW37UJPJCOUMAOAZDSSU6QRTRTJ5B1 -->
+
