@@ -1,0 +1,23 @@
+# Arquivos de configuração local/específicos do servidor
+.env
+.env.local
+*.local
+
+# Notas pessoais e documentação interna
+DEPLOY.local.md
+deploy-notes.md
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
