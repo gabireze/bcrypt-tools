@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /README.md
 
-Sitemap: https://bcrypt-tools.vercel.app/sitemap.xml
+Sitemap: https://bcrypt.gabireze.cloud/sitemap.xml

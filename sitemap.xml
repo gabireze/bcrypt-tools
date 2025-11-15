@@ -2,62 +2,62 @@
 	xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/</loc>
+		<loc>https://bcrypt.gabireze.cloud/</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>1.00</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/md4</loc>
+		<loc>https://bcrypt.gabireze.cloud/md4</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/md5</loc>
+		<loc>https://bcrypt.gabireze.cloud/md5</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/sha1</loc>
+		<loc>https://bcrypt.gabireze.cloud/sha1</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/sha256</loc>
+		<loc>https://bcrypt.gabireze.cloud/sha256</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/sha512</loc>
+		<loc>https://bcrypt.gabireze.cloud/sha512</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/pbkdf2</loc>
+		<loc>https://bcrypt.gabireze.cloud/pbkdf2</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/argon2</loc>
+		<loc>https://bcrypt.gabireze.cloud/argon2</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/crc32</loc>
+		<loc>https://bcrypt.gabireze.cloud/crc32</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/hmac</loc>
+		<loc>https://bcrypt.gabireze.cloud/hmac</loc>
 		<lastmod>2024-09-04T21:27:43+00:00</lastmod>
 		<priority>0.80</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/privacy-policy</loc>
+		<loc>https://bcrypt.gabireze.cloud/privacy-policy</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>0.30</priority>
 	</url>
 	<url>
-		<loc>https://bcrypt-tools.vercel.app/terms-of-use</loc>
+		<loc>https://bcrypt.gabireze.cloud/terms-of-use</loc>
 		<lastmod>2024-09-04T14:27:43+00:00</lastmod>
 		<priority>0.30</priority>
 	</url>
