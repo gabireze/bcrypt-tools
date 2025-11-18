@@ -62,7 +62,7 @@ fi
 
 echo ""
 echo -e "${GREEN}✅ Deploy concluído com sucesso!${NC}"
-echo -e "${GREEN}🌐 Site: https://bcrypt.gabireze.cloud${NC}"
+echo -e "${GREEN}🌐 Site: https://bcrypt.gabireze.cloud/${NC}"
 echo ""
 echo -e "📊 Arquivos atualizados:"
 ls -lh $WEB_DIR/*.html | wc -l

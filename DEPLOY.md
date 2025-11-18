@@ -137,7 +137,7 @@ echo -e "${YELLOW}🔄 Recarregando Nginx...${NC}"
 sudo nginx -t && sudo systemctl reload nginx
 
 echo -e "${GREEN}✅ Deploy concluído com sucesso!${NC}"
-echo -e "${GREEN}🌐 Site: https://bcrypt.gabireze.cloud${NC}"
+echo -e "${GREEN}🌐 Site: https://bcrypt.gabireze.cloud/${NC}"
 ```
 
 Para usar o script:
@@ -159,7 +159,7 @@ sudo tail -f /var/log/nginx/bcrypt.gabireze.cloud.access.log
 sudo tail -f /var/log/nginx/bcrypt.gabireze.cloud.error.log
 
 # Testar o site
-curl -I https://bcrypt.gabireze.cloud
+curl -I https://bcrypt.gabireze.cloud/
 
 # Verificar se todos os arquivos estão no lugar
 ls -lah /var/www/bcrypt.gabireze.cloud/
