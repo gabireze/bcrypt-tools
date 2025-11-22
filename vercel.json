@@ -1,4 +1,18 @@
 {
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://bcrypt.gabireze.cloud/:path*",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "bcrypt-tools.vercel.app"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/md4", "destination": "/md4.html" },
     { "source": "/md5", "destination": "/md5.html" },
