@@ -18,6 +18,18 @@ Bcrypt.tools is a client-side application for generating and verifying various c
 
 Each algorithm offers a secure method for generating cryptographic hashes for your data, ensuring strong password protection and data integrity.
 
+## Run locally
+
+No build step or backend service is required. Clone the repository and serve the
+directory with any local static-file server, for example:
+
+```bash
+python -m http.server 8080
+```
+
+Then open `http://localhost:8080` in your browser. Cryptographic operations run
+entirely on the client.
+
 ### Encrypt
 
 - **Generate a secure hash** for any plaintext, allowing enhanced password protection or data integrity validation.

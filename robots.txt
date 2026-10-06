@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /README.md
-
-Sitemap: https://bcrypt.gabireze.cloud/sitemap.xml
